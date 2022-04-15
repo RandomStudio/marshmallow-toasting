@@ -10,8 +10,9 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
-import { BleManager } from 'react-native-ble-plx';
-import { useRef } from 'react/cjs/react.production.min';
+import { BleManager, LogLevel } from 'react-native-ble-plx';
+
+const TX_POWER = 12; // in theory this is hardcoded in chip and based on clean measurement at 1m distance
 
 const STATES = {
 	NORMAL: 'NORMAL',
@@ -23,28 +24,25 @@ let manager;
 
 const App = () => {
 	const [bluetoothStatus, setBluetoothStatus] = useState(null);
+
+	const [isReadyToScan, setIsReadyToScan] = useState(false);
+
 	const [currentRssi, setCurrentRssi] = useState(null);
 	const [currentDistance, setCurrentDistance] = useState(null);
-	const [beaconId, setBeaconId] = useState(null);
+
 	const [marshmallowState, setMarshmallowState] = useState(STATES.NORMAL);
 	const [isCooking, setIsCooking] = useState(false);
 	const [percentageComplete, setPercentageComplete] = useState(0);
 
-	const handleScan = async (_, device) => {
-		if (device.name !== 'piblack4') {
-			return;
-		}
-		await device.connect();
-		setBeaconId(device.id);
-		console.log('Found beacon');
-	};
-
 	useEffect(() => {
 		manager = new BleManager();
+		manager.setLogLevel(LogLevel.Verbose);
+
 		const subscription = manager.onStateChange((state) => {
 			setBluetoothStatus(state);
 			if (state === 'PoweredOn') {
-				manager.startDeviceScan(null, null, handleScan);
+				console.log('Bluetooth activated');
+				setIsReadyToScan(true);
 				subscription.remove();
 			}
 		}, true);
@@ -53,32 +51,40 @@ const App = () => {
 			subscription.remove();
 			manager = null;
 			setBluetoothStatus(null);
-			setBeaconId(null);
 			setCurrentRssi(null);
 			setMarshmallowState(STATES.NORMAL);
 		};
 	}, []);
 
 	useEffect(() => {
-		if (!beaconId) {
+		if (!isReadyToScan) {
 			return;
 		}
+
 		let timer;
-		const updateRSSIForBeacon = () => {
-			manager.readRSSIForDevice(beaconId).then((result) => {
-				console.log('Ping', result);
-				const { rssi } = result;
-				setCurrentRssi(rssi);
-				const distance = 10 ** ((-69 - rssi) / (10 * 2));
-				setCurrentDistance(distance)
-				timer = window.setTimeout(updateRSSIForBeacon, 100);
-			});
+
+		const startScan = () => {
+			timer = manager.startDeviceScan(null, null, handleScan);
 		};
-		updateRSSIForBeacon();
+
+		const handleScan = async (_, device) => {
+			if (!device?.name || !(device.name === 'piblack4' || device.name === 'campfire' || device.name.includes('ZBOX'))) {
+				return;
+			}
+
+			console.log('Update RSSI')
+			setBluetoothStatus('Connected');
+			setCurrentRssi(device.rssi);
+			manager.stopDeviceScan();
+			timer = window.setTimeout(startScan, 500);
+		};
+
+		startScan();
+
 		return () => {
 			window.clearTimeout(timer);
-		};
-	}, [beaconId]);
+		}
+	}, [isReadyToScan]);
 
 	useEffect(() => {
 		if (percentageComplete > 100 && percentageComplete < 125) {
