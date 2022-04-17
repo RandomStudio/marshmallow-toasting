@@ -11,14 +11,13 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import { BleManager, LogLevel } from 'react-native-ble-plx';
+import Marshmallow from './Marshmallow';
 
-const TX_POWER = 12; // in theory this is hardcoded in chip and based on clean measurement at 1m distance
+// in theory, we can calculate values using txPower but seems to be null via BLE in Ubuntu. Just using real world values
+const BURNING_RSSI = -45;
+const COOKING_RSSI = -60;
 
-const STATES = {
-	NORMAL: 'NORMAL',
-	PERFECT: 'PERFECT',
-	BURNT: 'BURNT',
-};
+const BLE_NAME = 'piblack4';
 
 let manager;
 
@@ -28,11 +27,6 @@ const App = () => {
 	const [isReadyToScan, setIsReadyToScan] = useState(false);
 
 	const [currentRssi, setCurrentRssi] = useState(null);
-	const [currentDistance, setCurrentDistance] = useState(null);
-
-	const [marshmallowState, setMarshmallowState] = useState(STATES.NORMAL);
-	const [isCooking, setIsCooking] = useState(false);
-	const [percentageComplete, setPercentageComplete] = useState(0);
 
 	useEffect(() => {
 		manager = new BleManager();
@@ -51,8 +45,6 @@ const App = () => {
 			subscription.remove();
 			manager = null;
 			setBluetoothStatus(null);
-			setCurrentRssi(null);
-			setMarshmallowState(STATES.NORMAL);
 		};
 	}, []);
 
@@ -68,44 +60,33 @@ const App = () => {
 		};
 
 		const handleScan = async (_, device) => {
-			if (!device?.name || !(device.name === 'piblack4' || device.name === 'campfire' || device.name.includes('ZBOX'))) {
+			if (!device?.name || device.name !== BLE_NAME) {
 				return;
 			}
-
-			console.log('Update RSSI')
+			const { rssi } = device;
+			setCurrentRssi(previous => Math.round((previous + rssi) / 2));
 			setBluetoothStatus('Connected');
-			setCurrentRssi(device.rssi);
 			manager.stopDeviceScan();
-			timer = window.setTimeout(startScan, 500);
+			timer = window.setTimeout(startScan, 100);
 		};
 
 		startScan();
 
 		return () => {
+			manager?.stopDeviceScan();
 			window.clearTimeout(timer);
-		}
+		};
 	}, [isReadyToScan]);
-
-	useEffect(() => {
-		if (percentageComplete > 100 && percentageComplete < 125) {
-			setMarshmallowState(STATES.PERFECT);
-		}
-		if (percentageComplete > 125) {
-			setMarshmallowState(STATES.BURNT);
-		}
-	}, [percentageComplete]);
 
 	return (
 		<SafeAreaView style={styles.page}>
 			<StatusBar barStyle="light-content" />
+			<Marshmallow isBurning={currentRssi && currentRssi > BURNING_RSSI} isCooking={currentRssi && currentRssi > COOKING_RSSI} />
 			<View
 				contentInsetAdjustmentBehavior="automatic">
+
 				<Text style={styles.text}>Bluetooth: {bluetoothStatus}</Text>
-				<Text style={styles.text}>State: {marshmallowState}</Text>
-				<Text style={styles.text}>{isCooking ? 'Is Cooking' : 'Not cooking'}</Text>
-				<Text style={styles.text}>Complete: {percentageComplete}</Text>
 				<Text style={styles.text}>RSSI: {currentRssi}</Text>
-				<Text style={styles.text}>Distance: {currentDistance}</Text>
 			</View>
 		</SafeAreaView>
 	);
