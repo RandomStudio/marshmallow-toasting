@@ -1,18 +1,39 @@
 require('dotenv').config();
-const { v4: uuidv4 } = require('uuid');
-const bleno = require('bleno');
+const { v4: uuid } = require('uuid');
 
-const uuid = uuidv4().replace('-', '');
-const major = 0;
-const minor = 0;
 const measuredPower = -59;
 
-const onReady = () => {
-	bleno.startAdvertisingIBeacon(uuid, major, minor, measuredPower);
+const HciSocket = require('hci-socket');
+const NodeBleHost = require('ble-host');
+
+const BleManager = NodeBleHost.BleManager;
+const AdvertisingDataBuilder = NodeBleHost.AdvertisingDataBuilder;
+
+var transport = new HciSocket(); // connects to the first hci device on the computer, for example hci0
+
+var options = {
+	// optional properties go here
 };
 
-bleno.on('stateChange', state => {
-	if (state === 'poweredOn') {
-		onReady();
+BleManager.create(transport, options, function (err, manager) {
+	if (err) {
+		console.error(err);
+		return;
 	}
+
+	manager.gattDb.setDeviceName(process.env.NAME);
+
+	const advDataBuffer = new AdvertisingDataBuilder()
+		.addFlags(['leGeneralDiscoverableMode', 'brEdrNotSupported'])
+		.addLocalName(/*isComplete*/ true, process.env.NAME)
+		.add128BitServiceUUIDs(/*isComplete*/ true, [uuid()])
+		.addAdvertisingInterval(1)
+		.build();
+
+	manager.setAdvertisingData(advDataBuffer);
+
+	manager.startAdvertising({
+		intervalMin: 32,
+		intervalMin: 64,
+	}, () => console.log('connected'));
 });
