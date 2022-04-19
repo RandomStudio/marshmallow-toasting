@@ -9,9 +9,9 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@abandonware/bluetooth-hci-socket": "0.5.3-8",
 		"ble-host": "^1.0.3",
 		"dotenv": "^16.0.0",
-		"hci-socket": "1.0.0",
 		"uuid": "^8.3.2"
 	}
 }

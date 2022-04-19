@@ -3,7 +3,7 @@ const { v4: uuid } = require('uuid');
 
 const measuredPower = -59;
 
-const HciSocket = require('hci-socket');
+const HciSocket = require('@abandonware/bluetooth-hci-socket');
 const NodeBleHost = require('ble-host');
 
 const BleManager = NodeBleHost.BleManager;
