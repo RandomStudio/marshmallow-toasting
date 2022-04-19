@@ -1,11 +1,8 @@
 /* eslint-disable prettier/prettier */
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+
+// campfire-1 – 10.112.10.141
+// campfire-2 – 10.112.10.120
+// campfire-3 – 10.112.10.229
 
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
@@ -60,6 +57,7 @@ const App = () => {
 		};
 
 		const handleScan = async (_, device) => {
+			console.log(device.name)
 			if (!device?.name || device.name !== BLE_NAME) {
 				return;
 			}
