@@ -1,22 +1,23 @@
 /* eslint-disable prettier/prettier */
 
 // campfire-1 – 10.112.10.141
-// campfire-2 – 10.112.10.120
-// campfire-3 – 10.112.10.229
+// campfire-2 – 10.112.10.229
+// campfire-3 – 10.112.10.120
 
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
-
-import { BleManager, LogLevel } from 'react-native-ble-plx';
-import Marshmallow from './Marshmallow';
+import { BleManager } from 'react-native-ble-plx';
+import Cooker from './Cooker/Cooker';
 
 // in theory, we can calculate values using txPower but seems to be null via BLE in Ubuntu. Just using real world values
 const BURNING_RSSI = -45;
 const COOKING_RSSI = -60;
 
-const BLE_NAME = 'piblack4';
+const BLE_NAME = 'campfire-1';
 
 let manager;
+
+const TX_POWERS = [-50];
 
 const App = () => {
 	const [bluetoothStatus, setBluetoothStatus] = useState(null);
@@ -25,9 +26,10 @@ const App = () => {
 
 	const [currentRssi, setCurrentRssi] = useState(null);
 
+	const [percentageComplete, setPercentageComplete] = useState(0);
+
 	useEffect(() => {
 		manager = new BleManager();
-		manager.setLogLevel(LogLevel.Verbose);
 
 		const subscription = manager.onStateChange((state) => {
 			setBluetoothStatus(state);
@@ -57,12 +59,11 @@ const App = () => {
 		};
 
 		const handleScan = async (_, device) => {
-			console.log(device.name)
 			if (!device?.name || device.name !== BLE_NAME) {
 				return;
 			}
 			const { rssi } = device;
-			setCurrentRssi(previous => Math.round((previous + rssi) / 2));
+			setCurrentRssi(rssi);
 			setBluetoothStatus('Connected');
 			manager.stopDeviceScan();
 			timer = window.setTimeout(startScan, 100);
@@ -79,12 +80,14 @@ const App = () => {
 	return (
 		<SafeAreaView style={styles.page}>
 			<StatusBar barStyle="light-content" />
-			<Marshmallow isBurning={currentRssi && currentRssi > BURNING_RSSI} isCooking={currentRssi && currentRssi > COOKING_RSSI} />
+			<Cooker isBurning={currentRssi && currentRssi > BURNING_RSSI} isCooking={currentRssi && currentRssi > COOKING_RSSI} percentageComplete={percentageComplete} setPercentageComplete={setPercentageComplete} />
 			<View
-				contentInsetAdjustmentBehavior="automatic">
-
+				contentInsetAdjustmentBehavior="automatic"
+				style={styles.debug}
+			>
 				<Text style={styles.text}>Bluetooth: {bluetoothStatus}</Text>
 				<Text style={styles.text}>RSSI: {currentRssi}</Text>
+				<Text style={styles.text}>Percentage: {percentageComplete}</Text>
 			</View>
 		</SafeAreaView>
 	);
@@ -92,11 +95,15 @@ const App = () => {
 
 const styles = StyleSheet.create({
 	page: {
-		backgroundColor: '#000',
 		height: '100%',
 		justifyContent: 'center',
 		alignItems: 'center',
+		backgroundColor: 'black',
 		width: '100%',
+	},
+	debug: {
+		position: 'absolute',
+		bottom: 10,
 	},
 	text: {
 		color: 'white',
