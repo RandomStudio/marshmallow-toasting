@@ -9,28 +9,6 @@ const STATES = {
 	BURNT: 'BURNT',
 };
 
-const COLOUR_STAGES = {
-	0: [255, 255, 255],
-	40: [225, 213, 201],
-	60: [203, 181, 162],
-	80: [157, 119, 86],
-	100: [78, 59, 43],
-	125: [0, 0, 0],
-};
-
-const styles = StyleSheet.create({
-	marshmallow: {
-		backgroundColor: 'white',
-		height: 160,
-		width: 80,
-	},
-	text: {
-		color: 'white',
-	},
-});
-
-const colourPercentages = Object.keys(COLOUR_STAGES);
-const colours = Object.values(COLOUR_STAGES);
 
 const Cooker = ({ isBurning, isCooking, percentageComplete, setPercentageComplete }) => {
 	const [marshmallowState, setMarshmallowState] = useState(STATES.NORMAL);
