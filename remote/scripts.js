@@ -32,8 +32,8 @@ const createMaterial = path => {
 	material.normalMap = loader.load('marshmallow_1001_Normal.jpg');
 	material.emissiveMap = loader.load('marshmallow_1001_Emissive.jpg');
 	material.transparent = true;
-	material.clipIntersection = true;
-	material.depthWrite = false;
+	material.clipIntersection = false;
+	material.depthWrite = true;
 	return material;
 };
 
@@ -73,7 +73,7 @@ const createScene = async () => {
 	);
 	outerModel = await createModel(warmMaterial);
 	const innerModel = await createModel(burntMaterial);
-	innerModel.scale.multiplyScalar(0.9);
+	innerModel.scale.multiplyScalar(1);
 	innerModel.renderOrder = 1;
 	outerModel.renderOrder = 2;
 
@@ -122,6 +122,9 @@ function deviceOrientationHandler(tiltX) {
 		return;
 	}
 	requestAnimationFrame(() => {
+		if (!group) {
+			return;
+		}
 		group.rotation.y += tiltX > 0 ? -0.01 : 0.01;
 	});
 }
