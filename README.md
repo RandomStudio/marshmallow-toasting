@@ -1,4 +1,4 @@
-# marshmallow-toasting
+# Virtual Marshmallow toasting
 Toast a virtual marshmallow on a digital fire
 
 ## Introduction
