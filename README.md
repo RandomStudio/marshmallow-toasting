@@ -1,6 +1,9 @@
 # Virtual Marshmallow toasting
 Toast a virtual marshmallow on a digital fire
 
+https://github.com/RandomStudio/marshmallow-toasting/assets/5897209/e0391354-34b0-47a1-a9c0-a88f0cc9494b
+
+
 ## Introduction
 This project compromises two parts:
 *  A React Native application that displays a 3D model of a marshmallow
