@@ -1,0 +1,13 @@
+current directory: /Users/andrew/repos/random/marshmallows/Marshmallows/vendor/bundle/ruby/2.7.0/gems/json-2.7.1/ext/json
+/Users/andrew/.rvm/rubies/ruby-2.7.4/bin/ruby -I /Users/andrew/.rvm/rubies/ruby-2.7.4/lib/ruby/2.7.0 -r ./siteconf20240229-93672-rbglob.rb extconf.rb
+creating Makefile
+
+current directory: /Users/andrew/repos/random/marshmallows/Marshmallows/vendor/bundle/ruby/2.7.0/gems/json-2.7.1/ext/json
+make "DESTDIR=" clean
+
+current directory: /Users/andrew/repos/random/marshmallows/Marshmallows/vendor/bundle/ruby/2.7.0/gems/json-2.7.1/ext/json
+make "DESTDIR="
+make: Nothing to be done for `all'.
+
+current directory: /Users/andrew/repos/random/marshmallows/Marshmallows/vendor/bundle/ruby/2.7.0/gems/json-2.7.1/ext/json
+make "DESTDIR=" install
