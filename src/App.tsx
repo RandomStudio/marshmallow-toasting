@@ -1,75 +1,39 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { DeviceEventEmitter, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import Cooker from './Cooker/Cooker';
-import { startScanning, stopScanning } from './bleUtils';
-import { BleError, BleManager, Device } from 'react-native-ble-plx';
+import { NativeEventEmitter, NativeModules } from 'react-native';
 import { calculateOverallAverage, updateMovingAverage } from './scanUtils';
+
+const { BeaconDistanceModule } = NativeModules;
+const beaconDistanceEmitter = new NativeEventEmitter(BeaconDistanceModule);
 
 export type MovingAverage = Record<string, number[]>;
 
-const DEVICE_UUIDS: string[] = [
-  // pod '3CE60852-08FF-E563-FC4A-1FC0BB7F952F',
-  // case '57E0F20D-EEFC-7607-6E0D-1EE6C86062E5',
-];
-
-let bleManager: BleManager;
-
 const App = () => {
-  const [isReadyToScan, setIsReadyToScan] = useState(false);
-
+  const [distances, setDistances] = useState<{[key: string]: number[]}>({});
   useEffect(() => {
-    bleManager = new BleManager();
-    startScanning(bleManager).then(() => setIsReadyToScan(true));
-    return () => {
-      stopScanning(bleManager);
-    }
-  }, []);
-
-  const [currentRssiReadings, setCurrentRssiReadings] = useState<MovingAverage>({});
-
-  const [uuids, setUuids] = useState<string[]>([]);
-  const handleScan = useCallback((error: BleError | null, device: Device | null) => {
-    if (error) {
-      console.error(error);
-      return;
-    }
-    if (!device || !device.rssi || device.name !== 'campfire') {
-      return;
-    }
-    if (!device.isConnected) {
-      device.connect()
-    }
-    const { id, rssi } = device;
-    setCurrentRssiReadings((prev) => updateMovingAverage(id, rssi, prev));
-  }, []);
-
-  useEffect(() => {
-    console.log('isReadyToScan', isReadyToScan)
-    if (!isReadyToScan && bleManager) {
-      return;
-    }
-    bleManager.startDeviceScan(
-      [],
-      {
-        allowDuplicates: true,
-      },
-      handleScan
+    const subscription = beaconDistanceEmitter.addListener(
+      'onDistanceUpdate',
+      (data) => {
+        setDistances((prev) => updateMovingAverage("beacons", data.averageDistance, prev));
+      }
     );
-  
     return () => {
-      bleManager.stopDeviceScan();
+      subscription.remove();
     }
-  }, [isReadyToScan]);
+  }, []);
 
-  const currentRssi = useMemo(() => calculateOverallAverage(currentRssiReadings), [currentRssiReadings]);
+  const currentDistance = useMemo(() => calculateOverallAverage(distances), [distances]);
+
+  const handleReset = () => {
+    setDistances({});
+  }
 
   return (
     <SafeAreaView style= { styles.page } >
       <StatusBar barStyle="dark-content" />
-      <Text style={{ color: 'white'}}>{JSON.stringify(currentRssiReadings)}</Text>
-      <Text style={{ color: 'white'}}>{currentRssi}</Text>
-      <Text style={{ color: 'white'}}>{uuids.join('\n')}</Text>
-      {/*<Cooker currentRssi={ currentRssi } />*/}
+      <Text style={{ color: 'white'}}>{currentDistance}</Text>
+      <Cooker currentDistance={ currentDistance } onReset={handleReset} />
     </SafeAreaView>
   );
 };

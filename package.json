@@ -10,10 +10,14 @@
     "test": "jest"
   },
   "dependencies": {
+    "node-beacon-scanner": "^0.2.2",
     "react": "18.2.0",
     "react-native": "0.73.5",
+    "react-native-beacons-manager": "^1.0.7",
     "react-native-ble-plx": "^3.1.2",
-    "react-native-webview": "^13.8.1"
+    "react-native-ibeacons": "^0.3.1",
+    "react-native-webview": "^13.8.1",
+    "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {
     "@abandonware/bleno": "^0.6.1",
