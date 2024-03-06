@@ -1,0 +1,6 @@
+module Pods_Marshmallows_MarshmallowsTests {
+  umbrella header "Pods-Marshmallows-MarshmallowsTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

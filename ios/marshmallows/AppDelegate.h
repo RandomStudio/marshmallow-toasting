@@ -1,8 +1,11 @@
-#import <React/RCTBridgeDelegate.h>
+#import <RCTAppDelegate.h>
 #import <UIKit/UIKit.h>
+#import <CoreLocation/CoreLocation.h>
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate, RCTBridgeDelegate>
+@interface AppDelegate : RCTAppDelegate <UIApplicationDelegate, CLLocationManagerDelegate>
 
-@property (nonatomic, strong) UIWindow *window;
+@property (strong, nonatomic) UIWindow *window;
+@property (strong, nonatomic) CLLocationManager *locationManager;
+@property (strong, nonatomic) CLBeaconRegion *beaconRegion;
 
 @end

@@ -19,7 +19,7 @@ const Marshmallow = ({ percentageComplete }) => {
 			<WebView
 				ref={viewRef}
 				source={{
-					uri: `https://evolution-party.s3.eu-central-1.amazonaws.com/index.html`,
+					uri: `https://d1spotbdoufgh0.cloudfront.net/index.html`,
 				}}
 				style={{
 					height: '100%',
